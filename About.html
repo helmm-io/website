@@ -52,7 +52,6 @@
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
   <script src="_ds/helm-design-system-93c98163-fc9f-4f73-8da7-e8e39e149d32/_ds_bundle.js"></script>
-  <script src="site/image-slot.js"></script>
   <script src="site/hubspot.js"></script>
 </head>
 <body>
@@ -98,8 +97,8 @@
                 </div>
               </div>
               <div className="about-hero-photo" data-reveal style={{ '--rd': '260ms', justifySelf: 'end' }}>
-                <image-slot id="toby-photo" shape="rounded" radius="4" placeholder="Drop Toby's photo"
-                  style={{ width: 'clamp(240px,30vw,360px)', height: 'clamp(300px,38vw,440px)', display: 'block', border: '1px solid rgba(168,216,224,0.28)' }}></image-slot>
+                <img src="assets/images/toby.jpg" alt="Toby McCorriston, founder of HELM"
+                  style={{ width: 'clamp(240px,30vw,360px)', height: 'clamp(300px,38vw,440px)', objectFit: 'cover', display: 'block', border: '1px solid rgba(168,216,224,0.28)', borderRadius: 4 }} />
               </div>
             </div>
           </section>
@@ -111,7 +110,7 @@
                 <Eyebrow index="01">Bio</Eyebrow>
               </div>
               <div data-reveal style={{ '--rd': '90ms', marginTop: 26, display: 'flex', flexDirection: 'column', gap: 22, borderLeft: '3px solid var(--color-border)', paddingLeft: 26 }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'clamp(18px,2.1vw,22px)', lineHeight: 1.6, color: 'var(--text-secondary)', margin: 0 }}>Over the past 18 years, I've supported some of the advertising and art industry's most respected names — including BMB, Droga 5, Karmarama (now Accenture Song), David Zwirner, Sadie Coles, and a number of family offices. In that time, I've learned that great IT support isn't about the technology itself, it's about making that technology invisible to the people who rely on it.</p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'clamp(18px,2.1vw,22px)', lineHeight: 1.6, color: 'var(--text-secondary)', margin: 0 }}>Over the past 18 years, I've supported some of the advertising and art industry's most respected names — including BMB, Droga5, Karmarama (now Accenture Song), David Zwirner, Sadie Coles, and a number of family offices. In that time, I've learned that great IT support isn't about the technology itself, it's about making that technology invisible to the people who rely on it.</p>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 16.5, lineHeight: 1.65, color: 'var(--text-muted)', margin: 0 }}>I've overseen everything from large-scale office relocations to straightforward system migrations, always with the same goal: minimal disruption, maximum reliability. I was moving clients to the cloud well before it became the industry standard, giving them a head start on efficiency, flexibility, and security that others are still catching up to.</p>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 16.5, lineHeight: 1.65, color: 'var(--text-muted)', margin: 0 }}>But technology is only half the story. I've found that a huge part of my own success has come from recognising what others can bring to a project — knowing when a challenge calls for a dedicated team member, and when it calls for the right specialist at the right level, delivered on budget and without compromise. That instinct for matching the right resource to the right problem has been the quiet engine behind a lot of what I've achieved for clients.</p>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 16.5, lineHeight: 1.65, color: 'var(--text-muted)', margin: 0 }}>Outside of work, family comes first for me. When I do get time to myself, you'll usually find me on the golf course, chasing the kind of personal focus and discipline that only that game demands, or out on the water sailing, where trusting your team and pulling together is everything. Both, in their own way, shape how I show up for my clients — precise, dependable, and always working as part of the team, not just alongside it.</p>
