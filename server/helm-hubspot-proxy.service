@@ -1,0 +1,19 @@
+[Unit]
+Description=HELM HubSpot proxy (keeps the private-app token server-side)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+Environment=HOME=/tmp
+ExecStart=/usr/local/bin/helm-hubspot-proxy-start
+Restart=always
+RestartSec=15
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

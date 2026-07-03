@@ -26,7 +26,7 @@ jobs:
             --instance-ids i-0913c45eb892e511f \
             --document-name AWS-RunShellScript \
             --comment "GitHub Actions deploy ${GITHUB_SHA::7}" \
-            --parameters 'commands=["cd /opt/helm-website && git pull","cp -r /opt/helm-website/. /usr/share/nginx/html/"]' \
+            --parameters 'commands=["cd /opt/helm-website && git pull","bash /opt/helm-website/server/deploy.sh"]' \
             --query 'Command.CommandId' --output text)
           echo "SSM command: $CMD_ID"
           for i in $(seq 1 30); do

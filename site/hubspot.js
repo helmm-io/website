@@ -29,7 +29,7 @@ const HELM_HUBSPOT = {
   portalId: '',         // Approach A — e.g. '1234567'
   contactFormGuid: '',  // Approach A — form GUID for the lead capture
   quoteFormGuid: '',    // Approach A — optional separate form for quotes (falls back to contactFormGuid)
-  proxyEndpoint: '',    // Approach B — e.g. 'https://api.helm.co.uk/hubspot' (takes priority if set)
+  proxyEndpoint: '/api/hubspot',  // Approach B — nginx proxies this to the on-instance HubSpot proxy (see server/)
   region: 'eu1',        // HubSpot data region for the Forms API host: 'na1' (US) or 'eu1' (EU)
 };
 

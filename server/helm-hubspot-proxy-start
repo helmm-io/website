@@ -1,0 +1,9 @@
+#!/bin/bash
+# Fetches the HubSpot private-app token from SSM Parameter Store (SecureString)
+# and starts the proxy with it in the environment. Runs as the systemd service
+# helm-hubspot-proxy; the instance role only has read access to this parameter.
+set -euo pipefail
+export HUBSPOT_PAT="$(aws ssm get-parameter \
+  --name /helm/hubspot/pat --with-decryption \
+  --region eu-west-2 --query Parameter.Value --output text)"
+exec /usr/bin/python3 /opt/helm-website/server/hubspot_proxy.py
