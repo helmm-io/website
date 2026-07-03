@@ -174,10 +174,10 @@ function HelmCtaFooter({ onContact, base = '' }) {
       { l: 'About', href: 'About.html' },
       { l: 'Approach', href: base + '#approach' },
       { l: 'The difference', href: base + '#results' },
-      { l: 'Careers', href: 'mailto:hello@helm.co.uk?subject=Careers' },
+      { l: 'Careers', href: 'mailto:hello@helmm.io?subject=Careers' },
     ] },
     { h: 'Contact', items: [
-      { l: 'hello@helm.co.uk', href: 'mailto:hello@helm.co.uk' },
+      { l: 'hello@helmm.io', href: 'mailto:hello@helmm.io' },
       { l: 'London, UK', href: null },
     ] },
   ];
@@ -261,7 +261,7 @@ function HelmContact({ open, onClose }) {
             <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 26, textTransform: 'uppercase', margin: '0 0 10px', color: 'var(--text-primary)' }}>Nearly there</h3>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, lineHeight: 1.6, color: 'var(--text-secondary)', margin: '0 0 24px' }}>Toby's live booking calendar is being connected. In the meantime, email us and we'll confirm your call within one working day.</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <a href="mailto:hello@helm.co.uk?subject=Discovery call" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--brand-primary)', color: 'var(--helm-facade-white)', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14.5, padding: '12px 20px', textDecoration: 'none' }}>Email hello@helm.co.uk</a>
+              <a href="mailto:hello@helmm.io?subject=Discovery call" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--brand-primary)', color: 'var(--helm-facade-white)', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14.5, padding: '12px 20px', textDecoration: 'none' }}>Email hello@helmm.io</a>
               <Button variant="secondary" onClick={onClose}>Done</Button>
             </div>
           </div>

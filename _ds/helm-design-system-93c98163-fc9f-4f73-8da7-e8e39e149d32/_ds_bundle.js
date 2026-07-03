@@ -1152,7 +1152,7 @@ function CtaFooter({
     items: ['About', 'Approach', 'Results', 'Careers']
   }, {
     h: 'Contact',
-    items: ['hello@helm.co.uk', '0800 000 0000', 'Manchester, UK']
+    items: ['hello@helmm.io', '0800 000 0000', 'Manchester, UK']
   }];
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("section", {
     style: {
