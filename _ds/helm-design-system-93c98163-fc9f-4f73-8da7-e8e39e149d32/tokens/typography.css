@@ -1,0 +1,44 @@
+/* HELM — Typography tokens
+   Three voices: Oswald (display/headings), Work Sans (body/UI), Gudea (quotes).
+   Oswald is condensed & confident — ALL CAPS or title case for impact.
+   Yellow text on light must use Amber (--text-yellow), never raw Mural Yellow. */
+
+:root {
+  /* ---- Families ---- */
+  --font-display: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+  --font-body:    'Work Sans', system-ui, -apple-system, sans-serif;
+  --font-quote:   'Gudea', Georgia, serif;
+
+  /* ---- Weights ---- */
+  --weight-light:    300;
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* ---- Type scale (px) ---- */
+  --fs-display:  64px; /* hero / cover — Oswald 600 */
+  --fs-title:    40px; /* slide & page titles — Oswald 500/600 */
+  --fs-h2:       30px; /* section headings */
+  --fs-h3:       22px; /* sub-headings (often UPPERCASE) */
+  --fs-section:  15px; /* eyebrow / section labels (UPPERCASE, tracked) */
+  --fs-lead:     19px; /* intro / lead paragraph */
+  --fs-body:     16px; /* default body */
+  --fs-body-sm:  14px; /* dense UI text */
+  --fs-caption:  12px; /* captions, labels */
+  --fs-micro:    11px; /* eyebrow caps, meta */
+  --fs-quote:    24px; /* Gudea pull-quotes */
+
+  /* ---- Line heights ---- */
+  --lh-tight:   1.02;
+  --lh-snug:    1.2;
+  --lh-body:    1.6;
+  --lh-quote:   1.45;
+
+  /* ---- Letter spacing ---- */
+  --tracking-display:  0.01em;
+  --tracking-tight:    0.02em;
+  --tracking-label:    0.14em;
+  --tracking-eyebrow:  0.22em;
+  --tracking-caps:     0.18em;
+}

@@ -1,0 +1,9 @@
+/* HELM Design System — global stylesheet entry point.
+   Consumers link THIS one file. It is an @import manifest only — no rules live here.
+   Everything reachable from these imports (tokens + @font-face) ships to consumers. */
+
+@import url('./tokens/fonts.css');
+@import url('./tokens/colors.css');
+@import url('./tokens/typography.css');
+@import url('./tokens/spacing.css');
+@import url('./tokens/effects.css');

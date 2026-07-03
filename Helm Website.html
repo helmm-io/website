@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HELM Managed Services — IT Consultancy</title>
+  <meta name="description" content="Boutique, AI-native IT consultancy for businesses worldwide. Senior people, security-first, quietly keeping everything running." />
+
+  <!-- Design system -->
+  <link rel="stylesheet" href="_ds/helm-design-system-93c98163-fc9f-4f73-8da7-e8e39e149d32/styles.css" />
+
+  <!-- Global base styles -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--color-bg, #F5F5F0); color: var(--text-primary, #1A2B2E); -webkit-font-smoothing: antialiased; }
+
+    /* ── Header nav ── */
+    @media (max-width: 767px) {
+      .helm-desktop-nav { display: none !important; }
+      .helm-mobile-toggle { display: flex !important; }
+    }
+
+    /* ── Footer grid ── */
+    @media (max-width: 680px) {
+      .helm-footer-grid { grid-template-columns: 1fr 1fr !important; }
+    }
+    @media (max-width: 400px) {
+      .helm-footer-grid { grid-template-columns: 1fr !important; }
+    }
+
+    /* ── Booking modal ── */
+    @media (max-width: 600px) {
+      .helm-book-modal { width: 100% !important; }
+      .helm-book-body { padding: 16px !important; }
+      .helm-book-frame { height: 60vh !important; }
+    }
+
+    /* ── Budget Explorer responsive ── */
+    @media (max-width: 860px) {
+      .helm-budget-grid { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 680px) {
+      .helm-plan-body { grid-template-columns: 1fr !important; }
+      .helm-lead-fields { grid-template-columns: 1fr !important; }
+    }
+
+    /* ── Spinner (invoice tool) ── */
+    @keyframes helm-spin { to { transform: rotate(360deg); } }
+    .helm-spin { animation: helm-spin 0.75s linear infinite; }
+
+    /* ── Scroll-reveal animation ── (gated on body.helm-anim) */
+    body.helm-anim [data-reveal] {
+      opacity: 0;
+      transform: translateY(18px);
+      transition:
+        opacity  var(--dur-slow, 320ms) var(--ease-out, cubic-bezier(0.16,1,0.3,1)) var(--rd, 0ms),
+        transform var(--dur-slow, 320ms) var(--ease-out, cubic-bezier(0.16,1,0.3,1)) var(--rd, 0ms);
+    }
+    body.helm-anim [data-reveal="rise"] {
+      transform: translateY(28px);
+    }
+    body.helm-anim [data-reveal="scale"] {
+      transform: translateY(12px) scale(0.97);
+    }
+    body.helm-anim [data-reveal].is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Service cards need border-color hover + scroll-reveal in one declaration */
+    body.helm-anim [data-reveal].helm-service-card {
+      transition:
+        border-color var(--dur-base, 200ms) var(--ease-standard, cubic-bezier(0.4,0,0.2,1)),
+        opacity      var(--dur-slow, 320ms) var(--ease-out, cubic-bezier(0.16,1,0.3,1)) var(--rd, 0ms),
+        transform    var(--dur-slow, 320ms) var(--ease-out, cubic-bezier(0.16,1,0.3,1)) var(--rd, 0ms);
+    }
+  </style>
+
+  <!-- React + Babel (client-side JSX) -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+
+  <!-- HELM Design System bundle -->
+  <script src="_ds/helm-design-system-93c98163-fc9f-4f73-8da7-e8e39e149d32/_ds_bundle.js"></script>
+
+  <!-- HubSpot integration scaffold -->
+  <script src="site/hubspot.js"></script>
+
+  <!-- PDF.js for invoice reading -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Scroll animation engine -->
+  <script src="site/motion.js"></script>
+
+  <!-- JSX components -->
+  <script type="text/babel" src="site/tweaks-panel.jsx"></script>
+  <script type="text/babel" src="site/quoteData.jsx"></script>
+  <script type="text/babel" src="site/quoteInvoice.jsx"></script>
+  <script type="text/babel" src="site/sectionsA.jsx"></script>
+  <script type="text/babel" src="site/sectionsB.jsx"></script>
+  <script type="text/babel" src="site/sectionsC.jsx"></script>
+
+  <!-- Root app -->
+  <script type="text/babel">
+    /* ── Tweak defaults ── */
+    const TWEAK_DEFAULTS = {
+      eyebrow:     'IT Consultancy · Global',
+      securityChip:'Security first',
+    };
+
+    function Site() {
+      const [values, set, reset] = useTweaks(TWEAK_DEFAULTS);
+      const [contactOpen, setContactOpen] = React.useState(false);
+
+      return (
+        <>
+          <HelmHeader onContact={() => setContactOpen(true)} />
+          <HelmHero onContact={() => setContactOpen(true)} eyebrow={values.eyebrow} securityChip={values.securityChip} />
+          <HelmServices />
+          <HelmApproach />
+          <HelmResults />
+          <HelmQuote onContact={() => setContactOpen(true)} />
+          <HelmFAQ />
+          <HelmCtaFooter onContact={() => setContactOpen(true)} />
+          <HelmContact open={contactOpen} onClose={() => setContactOpen(false)} />
+
+          <TweaksPanel onReset={reset}>
+            <TweakSection label="Hero">
+              <TweakRow label="Eyebrow"><TweakText value={values.eyebrow} onChange={v => set('eyebrow', v)} placeholder="IT Consultancy · Global" /></TweakRow>
+              <TweakRow label="Security chip"><TweakText value={values.securityChip} onChange={v => set('securityChip', v)} placeholder="Security first" /></TweakRow>
+            </TweakSection>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<Site />);
+  </script>
+</body>
+</html>

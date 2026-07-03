@@ -1,0 +1,59 @@
+/* HELM — Colour tokens
+   Source of truth: brand-guide.md. Deep Teal dominates (60–70%); Mural Yellow is
+   punctuation only — never wallpaper, never as text on white (use Amber instead). */
+
+:root {
+  /* ---- Base palette (raw brand colours) ---- */
+  --helm-deep-teal:    #1A8FA0; /* primary brand — backgrounds, headers, dominant */
+  --helm-mural-yellow: #F2C12E; /* accent — CTAs, highlights, key callouts */
+  --helm-pale-sky:     #A8D8E0; /* secondary — soft backgrounds, support, text on dark */
+  --helm-amber:        #C4911A; /* deeper yellow — hover, yellow text on light */
+  --helm-mid-teal:     #2DB5CC; /* between deep teal & sky — icons, dividers, charts */
+  --helm-warm-grey:    #C4B8A8; /* neutral — subtle bg, dividers, secondary text */
+  --helm-facade-white: #F5F5F0; /* light backgrounds, white space */
+  --helm-night-teal:   #1A2B2E; /* body text, dark backgrounds */
+  --helm-white:        #FFFFFF;
+
+  /* Derived neutrals (used throughout the brand DC) */
+  --helm-hairline:     #E4E2DA; /* 1px hairline borders, grid gap lines */
+  --helm-deep-teal-ink:#15737F; /* darker teal for hover/press on primary */
+  --helm-danger:       #B23A48; /* error / "don't" — used sparingly */
+
+  /* ---- Semantic aliases ---- */
+  /* Surfaces */
+  --color-bg:            var(--helm-facade-white);
+  --color-surface:       var(--helm-white);
+  --color-surface-sunken:var(--helm-facade-white);
+  --color-surface-dark:  var(--helm-night-teal);
+  --color-surface-brand: var(--helm-deep-teal);
+
+  /* Borders & dividers */
+  --color-border:        var(--helm-hairline);
+  --color-border-strong: var(--helm-warm-grey);
+  --color-divider:       var(--helm-hairline);
+
+  /* Text */
+  --text-primary:    var(--helm-night-teal);
+  --text-secondary:  #4A5A5D;            /* night teal, softened — for body/secondary */
+  --text-muted:      #7C8688;            /* captions, meta */
+  --text-on-dark:    var(--helm-facade-white);
+  --text-on-dark-soft:var(--helm-pale-sky);
+  --text-accent:     var(--helm-deep-teal);
+  --text-yellow:     var(--helm-amber);  /* yellow text on light — NEVER raw #F2C12E */
+
+  /* Brand roles */
+  --brand-primary:        var(--helm-deep-teal);
+  --brand-primary-hover:  var(--helm-deep-teal-ink);
+  --brand-accent:         var(--helm-mural-yellow);
+  --brand-accent-hover:   var(--helm-amber);
+  --brand-secondary:      var(--helm-pale-sky);
+
+  /* Feedback */
+  --color-success: var(--helm-deep-teal);
+  --color-warning: var(--helm-amber);
+  --color-danger:  var(--helm-danger);
+  --color-info:    var(--helm-mid-teal);
+
+  /* Focus */
+  --focus-ring: var(--helm-deep-teal);
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 136 44">
+  <g transform="translate(0,2) scale(0.3057)">
+    <path fill="#1A2B2E" fill-rule="evenodd" d="M60.87,129.19l-12.63-.17c-10.82-.14-20.8-5.87-26.38-15.14l-15.71-26.1c-7.51-12.48-5.41-28.5,5.07-38.62L60.87,1.21l49.64,47.94c10.48,10.12,12.58,26.14,5.07,38.62l-15.71,26.1c-5.58,9.27-15.56,15-26.38,15.14,0,0-12.63.17-12.63.17ZM26.31,72.98a34.56,34.56,0,1,0,69.12,0a34.56,34.56,0,1,0,-69.12,0Z"/>
+  </g>
+  <text x="49" y="30" font-family="Oswald, 'Arial Narrow', system-ui, sans-serif" font-weight="600" font-size="25" letter-spacing="0.5" fill="#1A2B2E">HELM</text>
+</svg>

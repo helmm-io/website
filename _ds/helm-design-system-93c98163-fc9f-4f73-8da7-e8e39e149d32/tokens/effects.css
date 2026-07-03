@@ -1,0 +1,30 @@
+/* HELM — Effects: radii, borders, shadows, motion.
+   The brand is FLAT and HARD-EDGED by default: square corners, 1px hairline borders,
+   tight 2px-gap grids — NOT drop shadows. Radii and shadows below are minimal on purpose. */
+
+:root {
+  /* ---- Corner radii ---- */
+  --radius-none: 0;
+  --radius-sm:   2px;
+  --radius-md:   4px;
+  --radius-pill: 999px;
+
+  /* ---- Borders ---- */
+  --border-hair:   1px solid var(--color-border);
+  --border-strong: 1px solid var(--color-border-strong);
+  --border-brand:  1px solid var(--brand-primary);
+
+  /* ---- Shadows (used sparingly — prefer borders) ---- */
+  --shadow-none: none;
+  --shadow-sm:  0 1px 2px rgba(26,43,46,0.06);
+  --shadow-md:  0 4px 16px rgba(26,43,46,0.08);
+  --shadow-lg:  0 12px 32px rgba(26,43,46,0.12);
+  --shadow-focus: 0 0 0 3px rgba(26,143,160,0.35);
+
+  /* ---- Motion ---- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast:   120ms;
+  --dur-base:   200ms;
+  --dur-slow:   320ms;
+}
