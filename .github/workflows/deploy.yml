@@ -1,0 +1,50 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::669031107739:role/helm-deploy-github
+          aws-region: eu-west-2
+
+      - name: Deploy to web server via SSM
+        run: |
+          CMD_ID=$(aws ssm send-command \
+            --instance-ids i-0913c45eb892e511f \
+            --document-name AWS-RunShellScript \
+            --comment "GitHub Actions deploy ${GITHUB_SHA::7}" \
+            --parameters 'commands=["cd /opt/helm-website && git pull","cp -r /opt/helm-website/. /usr/share/nginx/html/"]' \
+            --query 'Command.CommandId' --output text)
+          echo "SSM command: $CMD_ID"
+          for i in $(seq 1 30); do
+            STATUS=$(aws ssm get-command-invocation --command-id "$CMD_ID" \
+              --instance-id i-0913c45eb892e511f --query Status --output text 2>/dev/null || echo Pending)
+            case "$STATUS" in
+              Success)
+                aws ssm get-command-invocation --command-id "$CMD_ID" \
+                  --instance-id i-0913c45eb892e511f --query StandardOutputContent --output text
+                echo "Deploy succeeded"
+                exit 0 ;;
+              Failed|Cancelled|TimedOut)
+                echo "Deploy $STATUS"
+                aws ssm get-command-invocation --command-id "$CMD_ID" \
+                  --instance-id i-0913c45eb892e511f --query StandardErrorContent --output text
+                exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "Timed out waiting for SSM command"
+          exit 1
