@@ -26,10 +26,10 @@
      helm_quote_monthly, helm_quote_detail
 */
 const HELM_HUBSPOT = {
-  portalId: '',         // Approach A — e.g. '1234567'
-  contactFormGuid: '',  // Approach A — form GUID for the lead capture
+  portalId: '148819036',  // Approach A — HELM HubSpot portal
+  contactFormGuid: '6efccba6-1896-4577-8b8e-6e31e0540133',  // Approach A — form GUID for the lead capture
   quoteFormGuid: '',    // Approach A — optional separate form for quotes (falls back to contactFormGuid)
-  proxyEndpoint: '/api/hubspot',  // Approach B — nginx proxies this to the on-instance HubSpot proxy (see server/)
+  proxyEndpoint: '',    // Approach B — leave empty to use the Forms API above; set to '/api/hubspot' to route via server/
   region: 'eu1',        // HubSpot data region for the Forms API host: 'na1' (US) or 'eu1' (EU)
 };
 
@@ -55,16 +55,45 @@ const HELM_HUBSPOT = {
     return r.ok;
   }
 
-  async function viaForms(formGuid, fields) {
+  var CORE_FIELDS = ['firstname', 'lastname', 'email', 'company'];
+
+  function presentKeys(fields) {
+    return Object.keys(fields).filter(function (k) {
+      return fields[k] !== undefined && fields[k] !== null && fields[k] !== '';
+    });
+  }
+
+  async function postForm(formGuid, fields) {
     var url = formsHost() + '/submissions/v3/integration/submit/' + HELM_HUBSPOT.portalId + '/' + formGuid;
     var body = {
-      fields: Object.keys(fields)
-        .filter(function (k) { return fields[k] !== undefined && fields[k] !== null && fields[k] !== ''; })
-        .map(function (k) { return { name: k, value: String(fields[k]) }; }),
+      fields: presentKeys(fields).map(function (k) { return { name: k, value: String(fields[k]) }; }),
       context: { pageUri: location.href, pageName: document.title },
     };
     var r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    return r.ok;
+    var text = r.ok ? '' : await r.text().catch(function () { return ''; });
+    return { ok: r.ok, status: r.status, text: text };
+  }
+
+  async function viaForms(formGuid, fields) {
+    var res = await postForm(formGuid, fields);
+    if (res.ok) return true;
+
+    // HubSpot rejects the whole submission if any single field isn't on the
+    // form (the helm_quote_* properties exist as contact properties but may
+    // not have been added to the form itself). Submits are fire-and-forget,
+    // so that would drop the lead silently — retry with the standard contact
+    // fields so at least the person is captured.
+    var core = {};
+    CORE_FIELDS.forEach(function (k) { if (fields[k]) core[k] = fields[k]; });
+    var dropped = presentKeys(fields).length - presentKeys(core).length;
+    if (res.status === 400 && presentKeys(core).length && dropped > 0) {
+      console.warn('HubSpot rejected the submission, retrying without the custom fields:', res.text);
+      var retry = await postForm(formGuid, core);
+      if (retry.ok) return true;
+      res = retry;
+    }
+    console.warn('HubSpot submit failed (' + res.status + '):', res.text);
+    return false;
   }
 
   async function send(kind, formGuid, fields) {
