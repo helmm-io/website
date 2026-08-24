@@ -1,6 +1,10 @@
 /* HELM MSP — "Beat my invoice" AI comparison tool.
    Lead gate → upload invoice (PDF/text) → Claude maps it to Helm pricing → quote.
-   Uses window.claude.complete (built-in) and pdf.js (loaded in the page head). */
+   The prompt (HELM_QUOTE_CONTEXT from quoteData.jsx, the single source of
+   pricing truth, plus the extracted invoice text) is built here in the
+   browser, then POSTed to same-origin /api/claude — a small proxy (see
+   server/claude_proxy.py) that holds the Anthropic API key server-side and
+   forwards the call. Also uses pdf.js (loaded in the page head). */
 const { Button, Icon, Badge } = window.HELMDesignSystem_93c981;
 
 const helmInvGBP = (n) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -54,16 +58,23 @@ function HelmInvoiceTool({ onContact, lead: leadProp }) {
   });
 
   const analyse = async (text) => {
-    if (!window.claude || !window.claude.complete) {
-      setStatus(''); setError('The live quoting engine is unavailable in this preview. Please try again on the published site.'); return;
-    }
     setStatus('analysing');
     try {
-      const raw = await window.claude.complete({
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: window.HELM_QUOTE_CONTEXT + '\n\nInvoice:\n' + text.substring(0, 3000) }],
+      const prompt = window.HELM_QUOTE_CONTEXT + '\n\nInvoice:\n' + text.substring(0, 3000);
+      const res = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ prompt }),
       });
-      const stripped = String(raw).replace(/```json|```/g, '');
+      if (!res.ok) {
+        setStatus('');
+        if (res.status === 503) setError("The live quoting engine isn't available right now — please get in touch and we'll quote you directly.");
+        else if (res.status === 429) setError("We're getting a lot of requests right now — please try again in a minute.");
+        else setError('Something went wrong reading your invoice. Please try again.');
+        return;
+      }
+      const { text: raw } = await res.json();
+      const stripped = String(raw || '').replace(/```json|```/g, '');
       let start = -1, depth = 0, end = -1;
       for (let i = 0; i < stripped.length; i++) {
         if (stripped[i] === '{') { if (start === -1) start = i; depth++; }
@@ -172,6 +183,11 @@ function HelmInvoiceTool({ onContact, lead: leadProp }) {
               {result.tier && <Badge tone="accent">{result.tier}</Badge>}
             </div>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px' }}>Read from <strong>{fileName}</strong> and matched line by line to Helm's portfolio.</p>
+            {result.notes && (
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)', background: 'rgba(26,143,160,0.06)', border: '1px solid rgba(26,143,160,0.18)', padding: '10px 12px', margin: '0 0 16px' }}>
+                <strong style={{ color: 'var(--helm-deep-teal)' }}>Why {result.tier || 'this plan'}: </strong>{result.notes}
+              </p>
+            )}
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13.5 }}>
               <thead>
                 <tr>
