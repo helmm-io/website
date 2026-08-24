@@ -1,0 +1,19 @@
+[Unit]
+Description=HELM Claude proxy (keeps the Anthropic API key off the client)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+Environment=HOME=/tmp
+ExecStart=/usr/local/bin/helm-claude-proxy-start
+Restart=always
+RestartSec=15
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
