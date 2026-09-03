@@ -69,7 +69,7 @@ Cloudflare (DNS, proxied, Full-strict SSL)
 
 **Automatic:** push to `main`. GitHub Actions (`deploy.yml`) assumes the IAM role `helm-deploy-github` via OIDC (no stored AWS keys), then uses SSM Run Command to execute `git pull` + `server/deploy.sh` on the instance. Watch runs in the Actions tab.
 
-`deploy.sh` copies the checkout to the nginx web root, strips repo/server-only files (`.git`, `.github`, `server/`, `README.md`), and re-runs `install.sh` so nginx config and the proxy service stay in sync with the repo.
+`deploy.sh` copies the checkout to the nginx web root, strips repo/server-only files (`.git`, `.github`, `server/`, `README.md`, `OPERATIONS.md`, `CLAUDE.md`), and re-runs `install.sh` so nginx config and the proxy service stay in sync with the repo.
 
 **Manual fallback:**
 

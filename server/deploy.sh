@@ -10,6 +10,8 @@ rm -rf /usr/share/nginx/html/.git \
        /usr/share/nginx/html/.github \
        /usr/share/nginx/html/.gitignore \
        /usr/share/nginx/html/server \
-       /usr/share/nginx/html/README.md
+       /usr/share/nginx/html/README.md \
+       /usr/share/nginx/html/OPERATIONS.md \
+       /usr/share/nginx/html/CLAUDE.md
 
 bash /opt/helm-website/server/install.sh

@@ -53,7 +53,7 @@ Flow: lead-gate form → `HelmHubSpot.submitContact()` → quote generated (Budg
 
 ### Server side (`server/`) — never served publicly
 
-`deploy.sh` copies the checkout to the nginx web root and then strips `.git`, `.github`, `server/` and `README.md`. Anything else at the repo root **is** publicly served (e.g. `OPERATIONS.md`). Keep that in mind when adding files.
+`deploy.sh` copies the checkout to the nginx web root and then strips `.git`, `.github`, `server/` and `README.md`. `OPERATIONS.md` and `CLAUDE.md` are stripped too. Anything else at the repo root **is** publicly served, so add new repo-only files to that list.
 
 Two small Python stdlib HTTP proxies run as hardened systemd services on localhost, fronted by nginx `location` blocks with per-IP rate limits (`nginx-ratelimit.conf` / `nginx-api.conf`):
 
