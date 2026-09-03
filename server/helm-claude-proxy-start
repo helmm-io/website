@@ -1,9 +1,23 @@
 #!/bin/bash
 # Fetches the Anthropic API key from SSM Parameter Store (SecureString) and
 # starts the proxy with it in the environment. Runs as the systemd service
-# helm-claude-proxy; the instance role only has read access to this parameter.
-set -euo pipefail
-export ANTHROPIC_API_KEY="$(aws ssm get-parameter \
-  --name /helm/anthropic/api_key --with-decryption \
-  --region eu-west-2 --query Parameter.Value --output text)"
+# helm-claude-proxy; the instance role must be allowed to read this parameter
+# (see README.md, "Claude quoting engine").
+#
+# If the fetch fails (parameter missing, or the instance role isn't allowed to
+# read it) we log why and still start the proxy, which then answers 503 so the
+# site degrades gracefully instead of crash-looping behind nginx 502s.
+set -uo pipefail
+PARAM=/helm/anthropic/api_key
+
+if ANTHROPIC_API_KEY="$(aws ssm get-parameter \
+    --name "$PARAM" --with-decryption \
+    --region eu-west-2 --query Parameter.Value --output text)"; then
+  export ANTHROPIC_API_KEY
+else
+  echo "warning: could not read $PARAM from SSM (aws error above)" >&2
+  echo "warning: check the parameter exists and the instance role may ssm:GetParameter it; starting without a key (proxy answers 503)" >&2
+  export ANTHROPIC_API_KEY=""
+fi
+
 exec /usr/bin/python3 /opt/helm-website/server/claude_proxy.py
