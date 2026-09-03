@@ -19,6 +19,7 @@ same posture as hubspot_proxy.py.
 """
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -31,13 +32,22 @@ KEY_OK = bool(API_KEY) and API_KEY != 'REPLACE_ME'
 
 # Fixed server-side, never taken from the request — bounds cost per call.
 MODEL = os.environ.get('ANTHROPIC_MODEL', 'claude-sonnet-5')
-MAX_TOKENS = 2000
+
+# Sonnet 5 (and every current model) reasons before answering, and those
+# thinking tokens count against max_tokens alongside the JSON we actually
+# want. The quote prompt asks the model to cost out every tier before choosing
+# one, so it legitimately thinks for a few thousand tokens; with the original
+# cap of 2000 the budget ran out before any text was written and the proxy
+# answered 502 "empty response from model". 8000 leaves headroom while still
+# bounding cost per call; effort "medium" keeps the reasoning proportionate.
+MAX_TOKENS = 8000
+EFFORT = os.environ.get('ANTHROPIC_EFFORT', 'medium')
 
 # HELM_QUOTE_CONTEXT (quoteData.jsx) runs ~6KB plus up to ~3KB of invoice
 # text the client extracts; this leaves comfortable headroom for both to
 # grow before the cap needs revisiting.
 MAX_BODY = 24 * 1024
-REQUEST_TIMEOUT = 45  # seconds — LLM calls are slower than typical API calls
+REQUEST_TIMEOUT = 85  # seconds — must stay under nginx's proxy_read_timeout (90s)
 
 
 def call_claude(prompt):
@@ -46,6 +56,8 @@ def call_claude(prompt):
         data=json.dumps({
             'model': MODEL,
             'max_tokens': MAX_TOKENS,
+            'thinking': {'type': 'adaptive'},
+            'output_config': {'effort': EFFORT},
             'messages': [{'role': 'user', 'content': prompt}],
         }).encode(),
         headers={
@@ -88,11 +100,24 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(400, {'error': 'malformed request'})
 
         try:
+            started = time.monotonic()
             out = call_claude(prompt)
             parts = out.get('content') or []
             text = ''.join(p.get('text', '') for p in parts if p.get('type') == 'text')
+            stop = out.get('stop_reason')
+            usage = out.get('usage') or {}
+            # One line per call so cost and failures are visible in the journal.
+            print('claude call: stop_reason={} blocks={} in={} out={} text_chars={} took={:.1f}s'.format(
+                stop, [p.get('type') for p in parts], usage.get('input_tokens'),
+                usage.get('output_tokens'), len(text), time.monotonic() - started), flush=True)
+            if stop == 'refusal':
+                return self.reply(502, {'error': 'quoting engine declined this document'})
             if not text:
+                if stop == 'max_tokens':
+                    print('claude call: max_tokens ({}) exhausted before any text was produced'.format(MAX_TOKENS), flush=True)
                 return self.reply(502, {'error': 'empty response from model'})
+            if stop == 'max_tokens':
+                print('claude call: text truncated at max_tokens; client JSON parse will likely fail', flush=True)
             return self.reply(200, {'text': text})
         except urllib.error.HTTPError as e:
             body = e.read()[:500]
