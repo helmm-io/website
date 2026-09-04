@@ -232,7 +232,7 @@ function HelmInvoiceTool({ onContact, lead: leadProp }) {
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(34px,5vw,46px)', lineHeight: 1, color: 'var(--helm-mural-yellow)' }}>{helmInvGBP(total)}<span style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'rgba(255,255,255,0.7)' }}>/mo</span></div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, lineHeight: 1.6, color: 'var(--text-muted)', margin: '14px 0 0' }}>This is an instant, like-for-like estimate based on what's on your invoice. Beat my invoice can't account for things like charitable pricing or specially negotiated licensing discounts — for a full, accurate quote, book a discovery call with the team.</p><div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
             <Button variant="accent" size="lg" iconRight={<Icon name="arrowRight" size={18} />} onClick={onContact}>Get a formal proposal</Button>
             <Button variant="ghost" size="lg" style={{ color: 'var(--helm-pale-sky)', border: '1px solid rgba(168,216,224,0.4)' }} onClick={() => { setResult(null); setFileName(''); setError(''); }}>Try another invoice</Button>
           </div>
