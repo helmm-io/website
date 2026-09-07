@@ -16,13 +16,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Work+Sans:wght@400;700&display=swap" rel="stylesheet">
 <style>
 @media screen and (max-width: 600px) {
-  .helm-container { width: 100% !important; max-width: 100% !important; }
-  .helm-pad { padding-left: 24px !important; padding-right: 24px !important; }
-  .helm-title { font-size: 32px !important; }
-  .helm-map-frame { height: 220px !important; }
-  .helm-map-frame iframe { height: 220px !important; }
+.helm-container { width: 100% !important; max-width: 100% !important; }
+.helm-pad { padding-left: 24px !important; padding-right: 24px !important; }
+.helm-title { font-size: 32px !important; }
+.helm-map-frame { height: 220px !important; }
+.helm-map-frame iframe { height: 220px !important; }
+.helm-rsvp-row { flex-direction: column !important; }
 }
 table {border-collapse:collapse;}
+.helm-rsvp-input::placeholder { color: rgba(245,245,240,0.4); }
+.helm-rsvp-input:focus { border-color: #F2C12E !important; }
+.helm-rsvp-option:has(input:checked) { border-color: #F2C12E !important; background-color: rgba(242,193,46,0.08) !important; }
 </style>
 </head>
 <body style="margin:0; padding:0; background-color:#0f2226; font-family:'Work Sans', Arial, Helvetica, sans-serif;">
@@ -139,17 +143,61 @@ There's no pitch and no agenda. We're there to celebrate the start of something 
 </td>
 </tr>
 
-<!-- CTA button -->
+<!-- RSVP form -->
 <tr>
-<td align="center" class="helm-pad" style="padding:0 40px 40px 40px; background-color:#F5F5F0;">
+<td class="helm-pad" style="padding:8px 40px 40px 40px; background-color:#F5F5F0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1A2B2E;">
+<tr>
+<td style="padding:28px 28px 28px 28px;">
+
+<div style="font-family:'Oswald', Arial Black, Arial, Helvetica, sans-serif; font-weight:900; letter-spacing:1.5px; font-size:12px; color:#F2C12E; text-transform:uppercase; margin:0 0 16px 0;">RSVP</div>
+
+<form id="helmRsvpForm" novalidate>
+<div id="helmRsvpFields">
+
+<div style="margin-bottom:12px;">
+<input type="text" id="helmRsvpName" class="helm-rsvp-input" placeholder="Your name" autocomplete="name" required
+style="width:100%; box-sizing:border-box; background-color:rgba(13,22,24,0.55); border:1px solid rgba(168,216,224,0.3); color:#F5F5F0; font-family:'Work Sans',Arial,Helvetica,sans-serif; font-size:15px; padding:12px 14px; outline:none;">
+</div>
+
+<div style="margin-bottom:16px;">
+<input type="email" id="helmRsvpEmail" class="helm-rsvp-input" placeholder="Work email" autocomplete="email" required
+style="width:100%; box-sizing:border-box; background-color:rgba(13,22,24,0.55); border:1px solid rgba(168,216,224,0.3); color:#F5F5F0; font-family:'Work Sans',Arial,Helvetica,sans-serif; font-size:15px; padding:12px 14px; outline:none;">
+</div>
+
+<div class="helm-rsvp-row" style="margin-bottom:18px; display:flex; gap:10px;">
+<label class="helm-rsvp-option" style="flex:1; display:flex; align-items:center; gap:8px; cursor:pointer; background-color:rgba(13,22,24,0.55); border:1px solid rgba(168,216,224,0.3); padding:12px 14px; font-family:'Work Sans',Arial,Helvetica,sans-serif; font-size:14px; color:#F5F5F0;">
+<input type="radio" name="helmRsvpAnswer" value="I can make it" required style="accent-color:#F2C12E; width:15px; height:15px;"> I can make it
+</label>
+<label class="helm-rsvp-option" style="flex:1; display:flex; align-items:center; gap:8px; cursor:pointer; background-color:rgba(13,22,24,0.55); border:1px solid rgba(168,216,224,0.3); padding:12px 14px; font-family:'Work Sans',Arial,Helvetica,sans-serif; font-size:14px; color:#F5F5F0;">
+<input type="radio" name="helmRsvpAnswer" value="I can't make it" style="accent-color:#F2C12E; width:15px; height:15px;"> I can't make it
+</label>
+</div>
+
+<p id="helmRsvpError" style="display:none; margin:0 0 14px 0; font-family:'Work Sans', Arial, Helvetica, sans-serif; font-size:13px; color:#F2A24E;">Please add your name, email, and let us know if you can make it.</p>
+
 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
 <tr>
 <td align="center" bgcolor="#F2C12E" style="border-radius:4px;">
-<a href="#" style="display:block; padding:16px 44px; font-family:'Oswald', Arial Black, Arial, Helvetica, sans-serif; font-weight:900; letter-spacing:1.5px; font-size:15px; color:#1A2B2E; text-decoration:none; text-transform:uppercase; border-radius:4px;">RSVP</a>
+<button type="submit" id="helmRsvpSubmit" style="display:block; width:100%; background:none; border:0; padding:16px 44px; font-family:'Oswald', Arial Black, Arial, Helvetica, sans-serif; font-weight:900; letter-spacing:1.5px; font-size:15px; color:#1A2B2E; text-transform:uppercase; border-radius:4px; cursor:pointer;">RSVP &rarr;</button>
 </td>
 </tr>
 </table>
-<p style="margin:14px 0 0 0; font-family:'Work Sans', Arial, Helvetica, sans-serif; font-size:13px; color:#8a7f6f;">RSVP link coming soon &mdash; watch this space.</p>
+
+<p style="margin:14px 0 0 0; font-family:'Work Sans', Arial, Helvetica, sans-serif; font-size:12px; color:#A8D8E0; line-height:1.5;">We'll store your details in our CRM to manage the guest list, and may email you event updates. You can opt out any time. See our <a href="/Privacy%20Policy.html" style="color:#F5F5F0;">Privacy Policy</a>.</p>
+
+</div>
+
+<div id="helmRsvpThanks" style="display:none;">
+<div style="font-family:'Oswald', Arial Black, Arial, Helvetica, sans-serif; font-weight:900; font-size:22px; text-transform:uppercase; color:#F5F5F0; margin:0 0 8px 0;">You're on the list</div>
+<p id="helmRsvpThanksMsg" style="margin:0; font-family:'Work Sans', Arial, Helvetica, sans-serif; font-size:15px; color:#A8D8E0; line-height:1.6;">Thanks for letting us know — see you on the water.</p>
+</div>
+
+</form>
+
+</td>
+</tr>
+</table>
 </td>
 </tr>
 
@@ -185,6 +233,84 @@ Toby, and the HELM team
 </td>
 </tr>
 </table>
+
+<script>
+(function () {
+  var PORTAL_ID = '148819036';
+  var FORM_GUID = 'ddab142b-53a0-4506-8490-94be312af39c';
+  var ENDPOINT = 'https://api-eu1.hsforms.com/submissions/v3/integration/submit/' + PORTAL_ID + '/' + FORM_GUID;
+
+  var form = document.getElementById('helmRsvpForm');
+  if (!form) return;
+  var fieldsBlock = document.getElementById('helmRsvpFields');
+  var thanks = document.getElementById('helmRsvpThanks');
+  var thanksMsg = document.getElementById('helmRsvpThanksMsg');
+  var errorEl = document.getElementById('helmRsvpError');
+  var submitBtn = document.getElementById('helmRsvpSubmit');
+
+  function splitName(name) {
+    var parts = String(name || '').trim().split(/\s+/);
+    return { firstname: parts.shift() || '', lastname: parts.join(' ') };
+  }
+  function getCookie(name) {
+    var m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return m ? m[2] : undefined;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    var name = document.getElementById('helmRsvpName').value.trim();
+    var email = document.getElementById('helmRsvpEmail').value.trim();
+    var answerEl = form.querySelector('input[name="helmRsvpAnswer"]:checked');
+    var answer = answerEl ? answerEl.value : '';
+
+    if (!name || !email || !answer) {
+      errorEl.style.display = 'block';
+      return;
+    }
+    errorEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+
+    var n = splitName(name);
+    var payload = {
+      fields: [
+        { name: 'firstname', value: n.firstname },
+        { name: 'lastname', value: n.lastname },
+        { name: 'email', value: email },
+        { name: 'launch_party_rsvp', value: answer },
+      ],
+      context: { pageUri: location.href, pageName: document.title },
+    };
+    var hutk = getCookie('hubspotutk');
+    if (hutk) { payload.context.hutk = hutk; }
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('submit failed');
+        return r.json();
+      })
+      .then(function () {
+        fieldsBlock.style.display = 'none';
+        thanks.style.display = 'block';
+        if (answer === "I can't make it") {
+          thanksMsg.textContent = "Thanks for letting us know — sorry you can't make it this time. We'll keep you posted on what's next.";
+        }
+      })
+      .catch(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'RSVP →';
+        errorEl.textContent = 'Something went wrong sending your RSVP. Please try again, or email hello@helmm.io.';
+        errorEl.style.display = 'block';
+      });
+  });
+})();
+</script>
 
 </body>
 </html>
