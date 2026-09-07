@@ -174,6 +174,14 @@ style="width:100%; box-sizing:border-box; background-color:rgba(13,22,24,0.55); 
 </label>
 </div>
 
+<div id="helmRsvpGuestsWrap" style="display:none; margin-bottom:18px;">
+<label for="helmRsvpGuests" style="display:block; margin-bottom:6px; font-family:'Work Sans',Arial,Helvetica,sans-serif; font-size:13px; color:#A8D8E0;">Bringing a plus one?</label>
+<select id="helmRsvpGuests" class="helm-rsvp-input" style="width:100%; box-sizing:border-box; background-color:rgba(13,22,24,0.55); border:1px solid rgba(168,216,224,0.3); color:#F5F5F0; font-family:'Work Sans',Arial,Helvetica,sans-serif; font-size:15px; padding:12px 14px; outline:none;">
+<option value="0">Just me</option>
+<option value="1">+1 guest</option>
+</select>
+</div>
+
 <p id="helmRsvpError" style="display:none; margin:0 0 14px 0; font-family:'Work Sans', Arial, Helvetica, sans-serif; font-size:13px; color:#F2A24E;">Please add your name, email, and let us know if you can make it.</p>
 
 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -190,7 +198,7 @@ style="width:100%; box-sizing:border-box; background-color:rgba(13,22,24,0.55); 
 
 <div id="helmRsvpThanks" style="display:none;">
 <div style="font-family:'Oswald', Arial Black, Arial, Helvetica, sans-serif; font-weight:900; font-size:22px; text-transform:uppercase; color:#F5F5F0; margin:0 0 8px 0;">You're on the list</div>
-<p id="helmRsvpThanksMsg" style="margin:0; font-family:'Work Sans', Arial, Helvetica, sans-serif; font-size:15px; color:#A8D8E0; line-height:1.6;">Thanks for letting us know — see you on the water.</p>
+<p id="helmRsvpThanksMsg" style="margin:0; font-family:'Work Sans', Arial, Helvetica, sans-serif; font-size:15px; color:#A8D8E0; line-height:1.6;">Thanks for letting us know. See you on the water.</p>
 </div>
 
 </form>
@@ -247,6 +255,8 @@ Toby, and the HELM team
   var thanksMsg = document.getElementById('helmRsvpThanksMsg');
   var errorEl = document.getElementById('helmRsvpError');
   var submitBtn = document.getElementById('helmRsvpSubmit');
+  var guestsWrap = document.getElementById('helmRsvpGuestsWrap');
+  var guestsSelect = document.getElementById('helmRsvpGuests');
 
   function splitName(name) {
     var parts = String(name || '').trim().split(/\s+/);
@@ -257,6 +267,19 @@ Toby, and the HELM team
     return m ? m[2] : undefined;
   }
 
+  var answerRadios = form.querySelectorAll('input[name="helmRsvpAnswer"]');
+  for (var i = 0; i < answerRadios.length; i++) {
+    answerRadios[i].addEventListener('change', function () {
+      var attending = form.querySelector('input[name="helmRsvpAnswer"]:checked');
+      if (attending && attending.value === 'I can make it') {
+        guestsWrap.style.display = 'block';
+      } else {
+        guestsWrap.style.display = 'none';
+        guestsSelect.value = '0';
+      }
+    });
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -264,6 +287,7 @@ Toby, and the HELM team
     var email = document.getElementById('helmRsvpEmail').value.trim();
     var answerEl = form.querySelector('input[name="helmRsvpAnswer"]:checked');
     var answer = answerEl ? answerEl.value : '';
+    var guests = answer === 'I can make it' ? guestsSelect.value : '0';
 
     if (!name || !email || !answer) {
       errorEl.style.display = 'block';
@@ -280,6 +304,7 @@ Toby, and the HELM team
         { name: 'lastname', value: n.lastname },
         { name: 'email', value: email },
         { name: 'launch_party_rsvp', value: answer },
+        { name: 'launch_party_guests', value: guests },
       ],
       context: { pageUri: location.href, pageName: document.title },
     };
@@ -299,7 +324,7 @@ Toby, and the HELM team
         fieldsBlock.style.display = 'none';
         thanks.style.display = 'block';
         if (answer === "I can't make it") {
-          thanksMsg.textContent = "Thanks for letting us know — sorry you can't make it this time. We'll keep you posted on what's next.";
+          thanksMsg.textContent = "Thanks for letting us know. Sorry you can't make it this time. We'll keep you posted on what's next.";
         }
       })
       .catch(function () {
