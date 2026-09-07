@@ -1,7 +1,7 @@
-/* HELM MSP website — Instant Quote section.
+/* HELM MSP website, Instant Quote section.
    Two real tools, rendered in the Helm design system:
-   · Budget Explorer  — deterministic, client-side pricing across all four tiers.
-   · Beat my invoice  — AI reads your current supplier invoice → like-for-like Helm quote.
+   · Budget Explorer: deterministic, client side pricing across all four tiers.
+   · Beat my invoice: AI reads your current supplier invoice and maps it to a comparable Helm quote.
    Pricing data lives in quoteData.jsx (window.HELM_*). */
 const { Button, Icon, Eyebrow, Badge } = window.HELMDesignSystem_93c981;
 const HELM_MAX_C = 'var(--content-max)';
@@ -52,37 +52,81 @@ const helmGBP = (n) => '£' + Math.round(n).toLocaleString('en-GB');
 const helmGBP2 = (n) => '£' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /* ------------------------------------------------------------------ *
- *  Budget Explorer — real pricing, all four tiers side by side        *
+ *  Budget Explorer: real pricing, all four tiers side by side          *
  * ------------------------------------------------------------------ */
-function helmBuildTiers(users, devices, os, email) {
+const HELM_DEVICES_PER_USER = 2;
+
+function helmBuildTiers(users, devices, email, addons) {
   const P = window.HELM_PRICING, SLA = window.HELM_SLA, DESC = window.HELM_DESCRIPTORS;
-  const winD = os === 'both' ? Math.ceil(devices / 2) : os === 'windows' ? devices : 0;
-  const macD = os === 'both' ? Math.floor(devices / 2) : os === 'mac' ? devices : 0;
+  const AI = window.HELM_ALWAYS_INCLUDED;
+  // Every plan includes 2 managed devices per licensed user (covers RMM/MDM, and
+  // EDR on tiers where EDR is bundled free). Devices beyond that allowance are
+  // billed automatically, never as a tickable add-on.
+  const deviceAllowance = users * HELM_DEVICES_PER_USER;
+  const overageDevices = Math.max(0, devices - deviceAllowance);
 
   return window.HELM_TIER_NAMES.map((tier) => {
     const ss = P.support[tier].sale, is = P.infra[tier].sale;
     let total = ss * users + is;
     const sla = SLA[tier];
+    const bundled = (window.HELM_BUNDLED_BY_TIER && window.HELM_BUNDLED_BY_TIER[tier]) || [];
     const lines = [
       { key: 'support', label: 'User Support & Helpdesk', sub: `${users} users × ${helmGBP2(ss)}/mo`, val: ss * users,
-        desc: `Support hours: ${sla.hours}${sla.ooh ? ' · out-of-hours on-call included' : ''}. Uptime commitment ${sla.uptime}. ${sla.reporting} service reporting.` },
+        desc: `You can always get hold of HELM: AI led triage and remediation runs 24/7 on every plan, spotting and resolving common issues automatically. Live team hours: ${sla.hours}${sla.fullCover ? ', with a human engineer covering this plan 24/7/365 at no extra charge' : '; outside those hours a human engineer is still reachable, billed hourly rather than included'}. ${sla.reporting} service reporting.` },
       { key: 'infra', label: 'Infrastructure & 24/7 Monitoring', sub: 'flat / mo', val: is,
-        desc: 'Continuous 24/7 monitoring of your core infrastructure: servers, network devices and cloud services, with proactive alerting and response.' },
+        desc: 'Continuous 24/7 monitoring of your core infrastructure: servers, network devices and cloud services. AI led triage flags anomalies and, where it is safe to do so, resolves them automatically, with proactive alerting and human response behind it around the clock.' },
     ];
+    // RMM/MDM: included free up to 2 managed devices per licensed user, on every tier.
+    if (AI) lines.push({ key: AI.key, label: AI.displayName, sub: `Included · covers up to ${deviceAllowance} devices (2 per user)`, val: 0, isIncluded: true, desc: AI.desc });
+    if (overageDevices > 0 && P.tools.rmmOverage) {
+      const t = P.tools.rmmOverage;
+      total += t.sale * overageDevices;
+      lines.push({ key: 'rmmOverage', label: t.displayName, sub: `${overageDevices} × ${helmGBP2(t.sale)} / device`, val: t.sale * overageDevices, desc: DESC.rmmOverage });
+    }
+    if (overageDevices > 0 && P.tools.mdmOverage) {
+      const t = P.tools.mdmOverage;
+      total += t.sale * overageDevices;
+      lines.push({ key: 'mdmOverage', label: t.displayName, sub: `${overageDevices} × ${helmGBP2(t.sale)} / device`, val: t.sale * overageDevices, desc: DESC.mdmOverage });
+    }
+    // Onsite support cadence: scales with headcount and is boosted or trimmed per
+    // tier (see helmOnsiteLevel in quoteData.jsx), so it's always shown even when
+    // the cadence is "none scheduled" for a small, remote first team.
+    if (window.helmOnsiteLevel) {
+      const os = window.helmOnsiteLevel(tier, users);
+      lines.push({ key: 'onsite', label: os.label, sub: os.sub, val: 0, isIncluded: true, desc: os.desc });
+    }
+    // Whatever's bundled free for THIS tier shows as an included line too, and is
+    // never charged for even if it's ticked in the optional add-ons list below
+    // (that tick only prices it on tiers where it isn't already included). EDR is
+    // device metered, so it shares the 2 per user allowance and bills overage;
+    // everything else bundled (ITDR) is a simple per licensed user inclusion.
+    bundled.forEach((k) => {
+      const t = P.tools[k]; if (!t) return;
+      if (k === 'huntressEDR') {
+        lines.push({ key: k, label: t.displayName, sub: `Included · covers up to ${deviceAllowance} devices (2 per user)`, val: 0, isIncluded: true, desc: DESC[k] });
+        if (overageDevices > 0) {
+          total += t.sale * overageDevices;
+          lines.push({ key: k + 'Overage', label: t.displayName + ', additional devices', sub: `${overageDevices} × ${helmGBP2(t.sale)} / device`, val: t.sale * overageDevices, desc: DESC[k] });
+        }
+      } else {
+        lines.push({ key: k, label: t.displayName, sub: `Included · covers ${users} licensed users`, val: 0, isIncluded: true, desc: DESC[k] });
+      }
+    });
+    // Everything else in HELM_PRICING.tools is a paid, opt-in add-on for this
+    // tier; only lands on the quote (and the total) if it's been ticked AND
+    // isn't already included free above. rmmOverage/mdmOverage are billed
+    // automatically above and are never tickable, so they're skipped here.
     Object.entries(P.tools).forEach(([k, t]) => {
-      if (!t.tiers.includes(tier)) return;
+      if (k === 'rmmOverage' || k === 'mdmOverage') return;
+      if (bundled.includes(k)) return;
+      if (!addons.has(k)) return;
       if (t.emailReq && t.emailReq !== email) return;
-      let qty;
-      if (t.unit === 'device') {
-        if (k === 'addigy') { if (os === 'windows') return; qty = macD; }
-        else if (k === 'ninja') { if (os === 'mac') return; qty = winD; }
-        else qty = devices;
-      } else qty = users;
+      const qty = t.unit === 'device' ? devices : users;
       if (qty <= 0) return;
       total += t.sale * qty;
       lines.push({ key: k, label: t.displayName, sub: `${qty} × ${helmGBP2(t.sale)} / ${t.unit}`, val: t.sale * qty, desc: DESC[k] });
     });
-    return { tier, total, lines };
+    return { tier, total, lines, bundled, users, deviceAllowance, overageDevices };
   });
 }
 
@@ -90,11 +134,23 @@ function HelmBudgetExplorer({ onContact, lead }) {
   const [users, setUsers] = React.useState(24);
   const [devices, setDevices] = React.useState(28);
   const [email, setEmail] = React.useState('m365');
+  // Device OS is informational only, reported to HubSpot with the quote, but
+  // RMM/MDM is bundled into every tier now so it no longer changes pricing.
   const [os, setOs] = React.useState('windows');
+  // Optional add-ons: nothing in HELM_PRICING.tools is included by default.
+  // Ticking one here adds it to every tier it's available on, priced by the
+  // user/device counts above. Unticked = not on the quote at all.
+  const [addons, setAddons] = React.useState(() => new Set());
   const [lineOpen, setLineOpen] = React.useState(() => new Set());
 
+  const toggleAddon = (key) => setAddons((prev) => {
+    const next = new Set(prev);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
+  });
+
   const uSafe = Math.max(1, users), dSafe = Math.max(1, devices);
-  const results = React.useMemo(() => helmBuildTiers(uSafe, dSafe, os, email), [uSafe, dSafe, os, email]);
+  const results = React.useMemo(() => helmBuildTiers(uSafe, dSafe, email, addons), [uSafe, dSafe, email, addons]);
   const rec = window.helmRecommendTier(uSafe);
   const [openTier, setOpenTier] = React.useState(rec);
   // Follow the recommendation as the team size changes.
@@ -123,8 +179,12 @@ function HelmBudgetExplorer({ onContact, lead }) {
           options={[{ v: 'm365', l: 'Microsoft 365' }, { v: 'google', l: 'Google Workspace' }]} />
         <HelmSeg label="Device operating system" value={os} onChange={setOs}
           options={[{ v: 'windows', l: 'Windows' }, { v: 'mac', l: 'Mac' }, { v: 'both', l: 'Both' }]} />
+
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, lineHeight: 1.6, color: 'var(--helm-warm-grey)', margin: 0, borderTop: '1px solid rgba(168,216,224,0.18)', paddingTop: 18 }}>
-          All four packages update live. Open any plan for the full breakdown. Prices exclude VAT and are indicative; Microsoft 365 / Google Workspace licences are quoted separately.
+          All four packages update live. Open any plan for the full breakdown, including what's included for that tier and any optional extras you can add. Prices exclude VAT and are indicative; Microsoft 365 / Google Workspace licences are quoted separately.
+        </p>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 11.5, lineHeight: 1.6, color: 'var(--helm-warm-grey)', margin: 0 }}>
+          *Agreements start on a monthly rolling basis for your first 12 months. Once you're happy, we move to a 36 month term.
         </p>
       </div>
 
@@ -140,14 +200,26 @@ function HelmBudgetExplorer({ onContact, lead }) {
                 window.HelmHubSpot.submitQuote({ name: lead.name, company: lead.company, email: lead.email, source: 'Budget Explorer', tier: r.tier, monthly_total: r.total, detail: meta });
               }
             }}
-            meta={meta} sla={window.HELM_SLA[r.tier]} lineOpen={lineOpen} toggleLine={toggleLine} onContact={onContact} />
+            meta={meta} sla={window.HELM_SLA[r.tier]} lineOpen={lineOpen} toggleLine={toggleLine} onContact={onContact}
+            email={email} addons={addons} toggleAddon={toggleAddon} />
         ))}
       </div>
     </div>
   );
 }
 
-function HelmPlanRow({ r, isRec, isOpen, onToggle, meta, sla, lineOpen, toggleLine, onContact }) {
+function HelmPlanRow({ r, isRec, isOpen, onToggle, meta, sla, lineOpen, toggleLine, onContact, email, addons, toggleAddon }) {
+  // Add-ons available on THIS tier: everything in HELM_PRICING.tools that isn't
+  // already bundled in free for this tier (r.bundled is that tier's bundled key
+  // list), excluding anything flagged noBudgetAddon (device overage lines, which
+  // bill automatically rather than being tickable, and Egnyte AFS/IFS, which stay
+  // available to the invoice matching tool but are hidden from this list).
+  const availableAddons = Object.entries(window.HELM_PRICING.tools).filter(([k, t]) => {
+    if (r.bundled.includes(k)) return false;
+    if (t.noBudgetAddon) return false;
+    if (t.emailReq && t.emailReq !== email) return false;
+    return true;
+  });
   return (
     <div style={{ background: 'var(--helm-facade-white)', borderTop: '3px solid ' + (isRec ? 'var(--helm-mural-yellow)' : 'transparent') }}>
       {/* header */}
@@ -157,7 +229,7 @@ function HelmPlanRow({ r, isRec, isOpen, onToggle, meta, sla, lineOpen, toggleLi
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(21px,2.6vw,27px)', textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--helm-night-teal)' }}>{r.tier}</span>
             {isRec && <Badge tone="accent">Recommended</Badge>}
           </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)', marginTop: 5 }}>{sla.hours} · {sla.uptime} uptime · {sla.reporting.toLowerCase()} reporting</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)', marginTop: 5 }}>{sla.hours} · AI triage 24/7 · {sla.reporting.toLowerCase()} reporting</div>
         </div>
         <div style={{ textAlign: 'right', flex: 'none' }}>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(26px,3.2vw,34px)', lineHeight: 1, color: 'var(--helm-deep-teal)' }}>{helmGBP(r.total)}</span>
@@ -173,6 +245,11 @@ function HelmPlanRow({ r, isRec, isOpen, onToggle, meta, sla, lineOpen, toggleLi
             {/* included */}
             <div style={{ paddingTop: 22 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>What's included</div>
+              {r.bundled.length > 0 && (
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, lineHeight: 1.55, color: 'var(--text-muted)', background: 'rgba(26,143,160,0.06)', border: '1px solid rgba(26,143,160,0.18)', padding: '10px 12px', margin: '0 0 14px' }}>
+                  Everything marked "Included" below is covered at no extra charge for the {r.users} licensed users and up to {r.deviceAllowance} managed devices on this plan. Anything beyond those allowances is charged as shown below.
+                </p>
+              )}
               <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                 {r.lines.map((ln) => {
                   const id = r.tier + '-' + ln.key;
@@ -185,7 +262,7 @@ function HelmPlanRow({ r, isRec, isOpen, onToggle, meta, sla, lineOpen, toggleLi
                           <span style={{ fontFamily: 'var(--font-body)', fontSize: 14.5, lineHeight: 1.4, color: 'var(--helm-night-teal)' }}>{ln.label}</span>
                           <span style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>{ln.sub}</span>
                         </div>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, whiteSpace: 'nowrap', color: 'var(--helm-night-teal)' }}>{helmGBP2(ln.val)}</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, whiteSpace: 'nowrap', color: ln.isIncluded ? 'var(--helm-deep-teal)' : 'var(--helm-night-teal)' }}>{ln.isIncluded ? 'Included' : helmGBP2(ln.val)}</span>
                         <button onClick={() => toggleLine(id)} aria-label="Details" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flex: 'none', display: 'flex', color: 'var(--helm-mid-teal)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform var(--dur-base) var(--ease-standard)' }}>
                           <Icon name="chevronDown" size={16} />
                         </button>
@@ -197,6 +274,24 @@ function HelmPlanRow({ r, isRec, isOpen, onToggle, meta, sla, lineOpen, toggleLi
                   );
                 })}
               </ul>
+
+              {availableAddons.length > 0 && (
+                <div style={{ marginTop: 22 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 10 }}>Optional addons for {r.tier}</div>
+                  <span style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)', marginBottom: 10 }}>Not included on this plan. Tick to add it to your {r.tier} quote.</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {availableAddons.map(([k, t]) => {
+                      const id = r.tier + '-addon-' + k;
+                      return (
+                        <HelmAddonCheckLight key={k} checked={addons.has(k)} onChange={() => toggleAddon(k)}
+                          label={t.displayName} sub={`${helmGBP2(t.sale)} / ${t.unit}`}
+                          desc={window.HELM_DESCRIPTORS && window.HELM_DESCRIPTORS[k]}
+                          open={lineOpen.has(id)} onToggleDetails={() => toggleLine(id)} />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* summary */}
@@ -208,12 +303,12 @@ function HelmPlanRow({ r, isRec, isOpen, onToggle, meta, sla, lineOpen, toggleLi
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(38px,5vw,50px)', lineHeight: 0.9, color: 'var(--helm-mural-yellow)' }}>{helmGBP(r.total)}</span>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--helm-facade-white)' }}>/mo</span>
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--helm-pale-sky)', marginTop: 6 }}>ex-VAT · rolling monthly, no lock-in</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, color: 'var(--helm-pale-sky)', marginTop: 6 }}>Excludes VAT · monthly rolling in year one*</div>
               </div>
               <div style={{ borderTop: '1px solid rgba(168,216,224,0.22)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <HelmSlaRow label="Support hours" value={sla.hours} />
-                <HelmSlaRow label="Uptime commitment" value={sla.uptime} />
-                <HelmSlaRow label="Out-of-hours cover" value={sla.ooh ? 'Included' : 'Business hours'} />
+                <HelmSlaRow label="Live team hours" value={sla.hours} />
+                <HelmSlaRow label="AI triage & support" value="24/7 on every plan" />
+                <HelmSlaRow label="Human engineer out of hours" value={sla.fullCover ? 'Included, 24/7/365' : 'Reachable any time, billed hourly'} />
                 <HelmSlaRow label="Service reporting" value={sla.reporting} />
               </div>
               <Button variant="accent" size="md" fullWidth iconRight={<Icon name="arrowRight" size={16} />} onClick={onContact}>Choose {r.tier}</Button>
@@ -236,6 +331,28 @@ function HelmSlaRow({ label, value }) {
 /* ------------------------------------------------------------------ *
  *  Shared inputs                                                      *
  * ------------------------------------------------------------------ */
+function HelmAddonCheckLight({ checked, onChange, label, sub, desc, open, onToggleDetails }) {
+  return (
+    <div style={{ background: checked ? 'rgba(26,143,160,0.08)' : 'rgba(26,43,46,0.03)', border: '1px solid ' + (checked ? 'var(--helm-mid-teal)' : 'rgba(26,43,46,0.12)') }}>
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', padding: '8px 10px' }}>
+        <input type="checkbox" checked={checked} onChange={onChange} style={{ marginTop: 3, flex: 'none', accentColor: 'var(--helm-deep-teal)' }} />
+        <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, color: 'var(--helm-night-teal)' }}>{label}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11.5, color: 'var(--text-muted)' }}>{sub}</span>
+        </span>
+        {desc && (
+          <button type="button" onClick={(e) => { e.preventDefault(); onToggleDetails(); }} aria-label="Details" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flex: 'none', display: 'flex', color: 'var(--helm-mid-teal)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform var(--dur-base) var(--ease-standard)' }}>
+            <Icon name="chevronDown" size={14} />
+          </button>
+        )}
+      </label>
+      {open && desc && (
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12.5, lineHeight: 1.6, color: 'var(--text-secondary)', margin: '0 10px 10px 32px', padding: '10px 12px', background: 'rgba(26,143,160,0.05)', borderLeft: '2px solid var(--helm-deep-teal)' }}>{desc}</div>
+      )}
+    </div>
+  );
+}
+
 function HelmSeg({ label, value, onChange, options }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -280,7 +397,7 @@ function HelmQuote({ onContact }) {
   const [mode, setMode] = React.useState('budget'); // 'budget' | 'invoice'
   const InvoiceTool = window.HelmInvoiceTool;
 
-  // Single lead-capture wall in front of BOTH tools. Until the visitor gives
+  // Single lead capture wall in front of BOTH tools. Until the visitor gives
   // name + company + work email, neither the Budget Explorer nor the invoice
   // tool is shown. Once unlocked, the lead is passed to the invoice tool so it
   // doesn't ask again.
@@ -326,7 +443,7 @@ function HelmQuote({ onContact }) {
         <div data-reveal><Eyebrow index="04" tone="accent">Instant quote</Eyebrow></div>
         <h2 data-reveal style={{ '--rd': '70ms', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'clamp(32px,5vw,54px)', lineHeight: 1.02, margin: '14px 0 12px', maxWidth: 760, color: 'var(--helm-facade-white)' }}>Price it up in a couple of minutes.</h2>
         <p data-reveal style={{ '--rd': '140ms', fontFamily: 'var(--font-body)', fontSize: 18, lineHeight: 1.6, color: 'var(--helm-pale-sky)', maxWidth: 640, margin: '0 0 32px' }}>{!access
-          ? 'Two ways to price up Helm: explore our packages against your team size, or upload your current invoice for a like-for-like comparison. Tell us who you are to unlock both.'
+          ? 'Two ways to price up Helm: explore our packages against your team size, or upload your current invoice for a direct comparison against our prices. Tell us who you are to unlock both.'
           : (mode === 'budget'
             ? 'Enter your headcount and devices to see all four Helm packages side by side, with a full cost breakdown, no sales call required.'
             : 'Upload your current supplier invoice. We read it line by line and map it to an equivalent Helm quote at our prices.')}</p>
