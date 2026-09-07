@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Page not found — HELM Managed Services</title>
+
+  <link rel="stylesheet" href="/_ds/helm-design-system-93c98163-fc9f-4f73-8da7-e8e39e149d32/styles.css" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--helm-night-teal, #1A2B2E);
+      color: var(--text-on-dark, #F5F5F0);
+      font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 24px var(--gutter, 24px);
+    }
+    header a { display: inline-flex; text-decoration: none; }
+    header img { height: 26px; width: auto; display: block; filter: brightness(0) invert(1); }
+
+    main {
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px var(--gutter, 24px) 80px;
+      text-align: center;
+    }
+
+    .wheel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(900px, 140vw);
+      height: min(900px, 140vw);
+      transform: translate(-50%, -50%);
+      opacity: 0.06;
+      pointer-events: none;
+      animation: helm-spin 90s linear infinite;
+    }
+    @keyframes helm-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .wheel { animation: none; }
+    }
+
+    .content { position: relative; z-index: 1; max-width: 620px; }
+    .eyebrow {
+      font-family: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--helm-mural-yellow, #F2C12E);
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-family: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: clamp(32px, 6vw, 52px);
+      line-height: 1.05;
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+      margin-bottom: 18px;
+    }
+    p {
+      font-size: 16.5px;
+      line-height: 1.65;
+      color: var(--helm-pale-sky, #A8D8E0);
+      margin-bottom: 34px;
+    }
+    .actions {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-primary {
+      display: inline-block;
+      background: var(--helm-mural-yellow, #F2C12E);
+      color: var(--helm-night-teal, #1A2B2E);
+      font-family: 'Work Sans', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 4px;
+      transition: background 0.15s ease;
+    }
+    .btn-primary:hover { background: var(--helm-amber, #C4911A); }
+    .link-secondary {
+      font-size: 14.5px;
+      font-weight: 500;
+      color: var(--helm-pale-sky, #A8D8E0);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" aria-label="HELM home">
+      <img src="/assets/logos/helm-logo.svg" alt="HELM" />
+    </a>
+  </header>
+
+  <main>
+    <img class="wheel" src="/assets/motifs/wheel-teal.svg" alt="" aria-hidden="true" />
+    <div class="content">
+      <div class="eyebrow">Error 404</div>
+      <h1>You've drifted off course</h1>
+      <p>The page you're looking for has moved, been renamed, or never existed. Let's get you back on a steady heading.</p>
+      <div class="actions">
+        <a class="btn-primary" href="/">Back to homepage</a>
+        <a class="link-secondary" href="mailto:hello@helmm.io">Contact us</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
